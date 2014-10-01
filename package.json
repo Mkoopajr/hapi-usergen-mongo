@@ -1,0 +1,29 @@
+{
+    "name": "hapi-usergen-mongo",
+    "version": "0.0.0",
+    "description": "MongoDB user generator for Hapijs",
+    "author": "Jacob Morton <mkoopajr@gmail.com>",
+    "engines": {
+        "node": ">=0.10.30"
+    },
+    "directories": {
+        "lib": "lib"
+    },
+    "main": "./lib/hapi-usergen-mongo",
+    "dependencies": {
+        "bcrypt": "~0.8.0",
+        "mongodb": "1.4.17"
+    },
+    "devDependencies": {
+        "istanbul": "~0.3.2",
+        "vows": "~0.7.0"
+    },
+    "scripts": {
+        "test": "istanbul cover --print both vows -- --spec ./tests/*.js"
+    },
+    "licenses": [
+        {
+            "type": "BSD"
+        }
+    ]
+}

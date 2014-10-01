@@ -1,0 +1,15 @@
+language: node_js
+node_js:
+    - "0.10"
+services:
+    - mongodb
+before_script:
+    - sleep 15
+    - ./tests/setup.sh
+env:
+    global:
+        - "LOCAL_USER=test@test.com"
+        - "LOCAL_PASS=test123"
+        - "DATABASE=test"
+        - "DB_USER=sessionHandler"
+        - "DB_PASS=supersecretpassword"
