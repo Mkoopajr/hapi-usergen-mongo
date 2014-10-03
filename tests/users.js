@@ -2,13 +2,16 @@ var vows = require('vows'),
     assert = require('assert');
 
 if (!process.env.LOCAL_USER || !process.env.LOCAL_PASS || !process.env.DATABASE
-    || !process.env.DB_USER || !process.env.DB_PASS) {
+    || !process.env.DB_USER || !process.env.DB_PASS || !process.env.USER_ADMIN
+    || !process.env.USER_ADMIN_PWD) {
     console.log('Usage: requires env variables: \n\
                 LOCAL_USER: New user to be stored locally. \n\
                 LOCAL_PASS: Password for new user. \n\
                 DATABASE: The database to access. \n\
-                DB_USER: A database handler user with read/write. \n\
-                DB_PASS: Database password. \n\n\
+                DB_USER: A database handler user with readWrite. \n\
+                DB_PASS: Database password. \n\
+                USER_ADMIN: A database handler user with userAdmin. \n\
+                USER_ADMIN_PWD: The password for userAdmin. \n\n\
                 Optional env varibles: \n\
                 SSL: if ssl is true. \n');
     process.exit(1);
@@ -21,6 +24,8 @@ var options = {
     db: process.env.DATABASE,
     name: process.env.DB_USER,
     pwd: process.env.DB_PASS,
+    userAdmin: process.env.USER_ADMIN,
+    userAdminPwd: process.env.USER_ADMIN_PWD,
     ssl: process.env.SSL
 };
 
@@ -28,6 +33,8 @@ var optionsBadHandler = {
     db: process.env.DATABASE,
     name: 'invalid',
     pwd: 'invalid',
+    userAdmin: 'invalid',
+    userAdminPwd: 'invalid',
     ssl: process.env.SSL
 };
 
@@ -36,6 +43,8 @@ var optionsBadDb = {
     port: 3000,
     name: process.env.DB_USER,
     pwd: process.env.DB_PASS,
+    userAdmin: process.env.USER_ADMIN,
+    userAdminPwd: process.env.USER_ADMIN_PWD,
     ssl: process.env.SSL
 };
 
@@ -56,12 +65,18 @@ users = {
         },
         'has method removeLocal': function(topic) {
             assert.isFunction(topic.removeLocal);
+        },
+        'has method registerCr': function(topic) {
+            assert.isFunction(topic.registerCr);
+        },
+        'has method removeCr': function(topic) {
+            assert.isFunction(topic.removeCr);
         }
     },
 };
 
 registerValid = {
-    'Registering new valid user': {
+    'Registering new valid local user': {
         topic: function() {
             var self = this;
             user.registerLocal(localUser, localPass, function(err, data) {
@@ -76,7 +91,7 @@ registerValid = {
 };
 
 registerAlreadyUsed = {
-    'Registering used user': {
+    'Registering used local user': {
         topic: function() {
             var self = this;
             user.registerLocal(localUser, localPass, function(err, data) {
@@ -90,7 +105,7 @@ registerAlreadyUsed = {
 };
 
 registerBadHandler = {
-    'Registering user with bad handler': {
+    'Registering local user with bad handler': {
         topic: function() {
             var self = this;
             badUser.registerLocal(localUser, localPass, function(err, data) {
@@ -104,7 +119,7 @@ registerBadHandler = {
 };
 
 registerBadDb = {
-    'Registering user with bad Db': {
+    'Registering local user with bad Db': {
         topic: function() {
             var self = this;
             badDb.registerLocal(localUser, localPass, function(err, data) {
@@ -118,7 +133,7 @@ registerBadDb = {
 };
 
 removeValid = {
-    'Removing test user': {
+    'Removing local user': {
         topic: function() {
             var self = this;
             user.removeLocal(localUser, function(err, removed) {
@@ -133,7 +148,7 @@ removeValid = {
 };
 
 removeInvalid = {
-    'Removing nonexistent user': {
+    'Removing nonexistent local user': {
         topic: function() {
             var self = this;
             user.removeLocal('invalid', function(err, removed) {
@@ -147,7 +162,7 @@ removeInvalid = {
 };
 
 removeBadHandler = {
-    'Removing test user with bad handler': {
+    'Removing local user with bad handler': {
         topic: function() {
             var self = this;
             badUser.removeLocal(localUser, function(err, removed) {
@@ -161,7 +176,7 @@ removeBadHandler = {
 };
 
 removeBadDb = {
-    'Removing test user with bad Db': {
+    'Removing local user with bad Db': {
         topic: function() {
             var self = this;
             badDb.removeLocal(localUser, function(err, removed) {
@@ -174,4 +189,118 @@ removeBadDb = {
     }
 };
 
-vows.describe('users.js').addBatch(users).addBatch(registerValid).addBatch(registerAlreadyUsed).addBatch(registerBadHandler).addBatch(registerBadDb).addBatch(removeValid).addBatch(removeInvalid).addBatch(removeBadHandler).addBatch(removeBadDb).export(module);
+registerValidCr = {
+    'Registering new valid CR user': {
+        topic: function() {
+            var self = this;
+            user.registerCr(localUser, localPass, null, null, function(err, data) {
+                self.callback(err, data);
+            });
+        },
+        'should return true': function(err, data) {
+            assert.isNull(err);
+            assert.isTrue(data);
+        }
+    }
+};
+
+registerAlreadyUsedCr = {
+    'Registering used CR user': {
+        topic: function() {
+            var self = this;
+            user.registerCr(localUser, localPass, null, null, function(err, data) {
+                self.callback(err, data);
+            });
+        },
+        'should return error': function(err, data) {
+            assert.isNotNull(err);
+        }
+    }
+};
+
+registerBadHandlerCr = {
+    'Registering CR user with bad handler': {
+        topic: function() {
+            var self = this;
+            badUser.registerCr(localUser, localPass, null, null, function(err, data) {
+                self.callback(err, data);
+            });
+        },
+        'should return error': function(err, data) {
+            assert.isNotNull(err);
+        }
+    }
+};
+
+registerBadDbCr = {
+    'Registering CR user with bad Db': {
+        topic: function() {
+            var self = this;
+            badDb.registerCr(localUser, localPass, null, null, function(err, data) {
+                self.callback(err, data);
+            });
+        },
+        'should return error': function(err, data) {
+            assert.isNotNull(err);
+        }
+    }
+};
+
+removeValidCr = {
+    'Removing CR user': {
+        topic: function() {
+            var self = this;
+            user.removeCr(localUser, function(err, removed) {
+                self.callback(err, removed);
+            });
+        },
+        'should return true': function(err, removed){
+            assert.isNull(err);
+            assert.isTrue(removed);
+        }
+    }
+};
+
+removeInvalidCr = {
+    'Removing nonexistent CR user': {
+        topic: function() {
+            var self = this;
+            user.removeCr('invalid', function(err, removed) {
+                self.callback(err, removed);
+            });
+        },
+        'should return error': function(err, removed){
+            assert.isNotNull(err);
+        }
+    }
+};
+
+removeBadHandlerCr = {
+    'Removing CR user with bad handler': {
+        topic: function() {
+            var self = this;
+            badUser.removeCr(localUser, function(err, removed) {
+                self.callback(err, removed);
+            });
+        },
+        'should return error': function(err, removed){
+            assert.isNotNull(err);
+        }
+    }
+};
+
+removeBadDbCr = {
+    'Removing CR user with bad Db': {
+        topic: function() {
+            var self = this;
+            badDb.removeCr(localUser, function(err, removed) {
+                self.callback(err, removed);
+            });
+        },
+        'should return error': function(err, removed){
+            assert.isNotNull(err);
+        }
+    }
+};
+
+vows.describe('users.js').addBatch(users).addBatch(registerValid).addBatch(registerAlreadyUsed).addBatch(registerBadHandler).addBatch(registerBadDb).addBatch(removeValid).addBatch(removeInvalid).addBatch(removeBadHandler).addBatch(removeBadDb).addBatch(registerValidCr).addBatch(registerAlreadyUsedCr).addBatch(registerBadHandlerCr).addBatch(registerBadDbCr).addBatch(removeValidCr).addBatch(removeInvalidCr).addBatch(removeBadHandlerCr).addBatch(removeBadDbCr).export(module);

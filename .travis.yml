@@ -13,3 +13,5 @@ env:
         - "DATABASE=test"
         - "DB_USER=sessionHandler"
         - "DB_PASS=supersecretpassword"
+        - "USER_ADMIN=sessionHandler"
+        - "USER_ADMIN_PWD=supersecretpassword"
