@@ -1,15 +1,15 @@
 var vows = require('vows'),
     assert = require('assert');
 
-if (!process.env.LOCAL_USER || !process.env.LOCAL_PASS || !process.env.DATABASE
-    || !process.env.DB_USER || !process.env.DB_PASS || !process.env.USER_ADMIN
+if (!process.env.LOCAL_USER || !process.env.LOCAL_PWD || !process.env.DATABASE
+    || !process.env.DB_USER || !process.env.DB_PWD || !process.env.USER_ADMIN
     || !process.env.USER_ADMIN_PWD) {
     console.log('Usage: requires env variables: \n\
                 LOCAL_USER: New user to be stored locally. \n\
-                LOCAL_PASS: Password for new user. \n\
+                LOCAL_PWD: Password for new user. \n\
                 DATABASE: The database to access. \n\
                 DB_USER: A database handler user with readWrite. \n\
-                DB_PASS: Database password. \n\
+                DB_PWD: Database password. \n\
                 USER_ADMIN: A database handler user with userAdmin. \n\
                 USER_ADMIN_PWD: The password for userAdmin. \n\n\
                 Optional env varibles: \n\
@@ -18,12 +18,12 @@ if (!process.env.LOCAL_USER || !process.env.LOCAL_PASS || !process.env.DATABASE
 }
 
 var localUser = process.env.LOCAL_USER,
-    localPass = process.env.LOCAL_PASS;
+    localPass = process.env.LOCAL_PWD;
 
 var options = {
     db: process.env.DATABASE,
     name: process.env.DB_USER,
-    pwd: process.env.DB_PASS,
+    pwd: process.env.DB_PWD,
     userAdmin: process.env.USER_ADMIN,
     userAdminPwd: process.env.USER_ADMIN_PWD,
     ssl: process.env.SSL
@@ -42,7 +42,7 @@ var optionsBadDb = {
     db: process.env.DATABASE,
     port: 3000,
     name: process.env.DB_USER,
-    pwd: process.env.DB_PASS,
+    pwd: process.env.DB_PWD,
     userAdmin: process.env.USER_ADMIN,
     userAdminPwd: process.env.USER_ADMIN_PWD,
     ssl: process.env.SSL
