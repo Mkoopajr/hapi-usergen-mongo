@@ -1,12 +1,15 @@
 var vows = require('vows'),
-    assert = require('assert');
+    assert = require('assert'),
+    bcrypt = require('bcrypt');
 
-if (!process.env.LOCAL_USER || !process.env.LOCAL_PWD || !process.env.DATABASE
-    || !process.env.DB_USER || !process.env.DB_PWD || !process.env.USER_ADMIN
-    || !process.env.USER_ADMIN_PWD) {
+if (!process.env.LOCAL_USER || !process.env.LOCAL_PWD || !process.env.GITHUB_USER
+    || !process.env.DATABASE || !process.env.DB_USER || !process.env.DB_PWD
+    || !process.env.USER_ADMIN || !process.env.USER_ADMIN_PWD) {
+
     console.log('Usage: requires env variables: \n\
                 LOCAL_USER: New user to be stored locally. \n\
                 LOCAL_PWD: Password for new user. \n\
+                GITHUB_USER: A name or email that\'d be used for github. \n\
                 DATABASE: The database to access. \n\
                 DB_USER: A database handler user with readWrite. \n\
                 DB_PWD: Database password. \n\
@@ -18,7 +21,18 @@ if (!process.env.LOCAL_USER || !process.env.LOCAL_PWD || !process.env.DATABASE
 }
 
 var localUser = process.env.LOCAL_USER,
-    localPass = process.env.LOCAL_PWD;
+    localPass = process.env.LOCAL_PWD,
+    githubUser = process.env.GITHUB_USER,
+    token;
+
+bcrypt.hash(localPass, 10, function(err, hash) {
+    if (err) {
+        console.log(err);
+        process.exit(1);
+    }
+
+    token = hash;
+}); 
 
 var options = {
     db: process.env.DATABASE,
@@ -71,6 +85,9 @@ users = {
         },
         'has method removeCr': function(topic) {
             assert.isFunction(topic.removeCr);
+        },
+        'has method registerLocalGithub': function(topic) {
+            assert.isFunction(topic.registerLocalGithub);
         }
     },
 };
@@ -303,4 +320,76 @@ removeBadDbCr = {
     }
 };
 
-vows.describe('users.js').addBatch(users).addBatch(registerValid).addBatch(registerAlreadyUsed).addBatch(registerBadHandler).addBatch(registerBadDb).addBatch(removeValid).addBatch(removeInvalid).addBatch(removeBadHandler).addBatch(removeBadDb).addBatch(registerValidCr).addBatch(registerAlreadyUsedCr).addBatch(registerBadHandlerCr).addBatch(registerBadDbCr).addBatch(removeValidCr).addBatch(removeInvalidCr).addBatch(removeBadHandlerCr).addBatch(removeBadDbCr).export(module);
+registerValidGithub = {
+    'Registering new valid github user': {
+        topic: function() {
+            var self = this;
+            user.registerLocalGithub(githubUser, token, function(err, data) {
+                self.callback(err, data);
+            });
+        },
+        'should return true': function(err, data) {
+            assert.isNull(err);
+            assert.isTrue(data);
+        }
+    }
+};
+
+registerInvalidGithub = {
+    'Registering used github user': {
+        topic: function() {
+            var self = this;
+            user.registerLocalGithub(githubUser, token, function(err, data) {
+                self.callback(err, data);
+            });
+        },
+        'should return error': function(err, data) {
+            assert.isNotNull(err);
+        }
+    }
+};
+
+addGithubValid = {
+    'Adding github to valid local user': {
+        topic: function() {
+            var self = this;
+            user.registerLocalGithub(localUser, token, function(err, data) {
+                self.callback(err, data);
+            });
+        },
+        'should return true': function(err, data) {
+            assert.isNull(err);
+            assert.isTrue(data);
+        }
+    }
+};
+
+badHandlerGithub = {
+    'Registering github user with bad handler': {
+        topic: function() {
+            var self = this;
+            badUser.registerLocalGithub(githubUser, token, function(err, data) {
+                self.callback(err, data);
+            });
+        },
+        'should return error': function(err, data) {
+            assert.isNotNull(err);
+        }
+    }
+};
+
+badDbGithub = {
+    'Registering github user with bad Db': {
+        topic: function() {
+            var self = this;
+            badDb.registerLocalGithub(githubUser, token, function(err, data) {
+                self.callback(err, data);
+            });
+        },
+        'should return error': function(err, data) {
+            assert.isNotNull(err);
+        }
+    }
+};
+
+vows.describe('users.js').addBatch(users).addBatch(registerValid).addBatch(registerAlreadyUsed).addBatch(registerBadHandler).addBatch(registerBadDb).addBatch(removeInvalid).addBatch(removeBadHandler).addBatch(removeBadDb).addBatch(registerValidCr).addBatch(registerAlreadyUsedCr).addBatch(registerBadHandlerCr).addBatch(registerBadDbCr).addBatch(removeValidCr).addBatch(removeInvalidCr).addBatch(removeBadHandlerCr).addBatch(removeBadDbCr).addBatch(registerValidGithub).addBatch(registerInvalidGithub).addBatch(addGithubValid).addBatch(badHandlerGithub).addBatch(badDbGithub).addBatch(removeValid).export(module);

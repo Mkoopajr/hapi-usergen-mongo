@@ -9,9 +9,9 @@ before_script:
 env:
     global:
         - "LOCAL_USER=test@test.com"
-        - "LOCAL_PASS=test123"
+        - "LOCAL_PWD=test123"
         - "DATABASE=test"
         - "DB_USER=sessionHandler"
-        - "DB_PASS=supersecretpassword"
+        - "DB_PWD=supersecretpassword"
         - "USER_ADMIN=sessionHandler"
         - "USER_ADMIN_PWD=supersecretpassword"
