@@ -10,6 +10,9 @@ env:
     global:
         - "LOCAL_USER=test@test.com"
         - "LOCAL_PWD=test123"
+        - "GITHUB_USER=test2@test.com"
+        - "USED_USER=test3@test.com"
+        - "USED_PWD=test123"
         - "DATABASE=test"
         - "DB_USER=sessionHandler"
         - "DB_PWD=supersecretpassword"

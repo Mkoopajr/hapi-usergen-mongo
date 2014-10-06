@@ -3,13 +3,16 @@ var vows = require('vows'),
     bcrypt = require('bcrypt');
 
 if (!process.env.LOCAL_USER || !process.env.LOCAL_PWD || !process.env.GITHUB_USER
-    || !process.env.DATABASE || !process.env.DB_USER || !process.env.DB_PWD
-    || !process.env.USER_ADMIN || !process.env.USER_ADMIN_PWD) {
+    || !process.env.USED_USER || !process.env.USED_PWD || !process.env.DATABASE
+    || !process.env.DB_USER || !process.env.DB_PWD || !process.env.USER_ADMIN
+    || !process.env.USER_ADMIN_PWD) {
 
     console.log('Usage: requires env variables: \n\
                 LOCAL_USER: New user to be stored locally. \n\
                 LOCAL_PWD: Password for new user. \n\
                 GITHUB_USER: A name or email that\'d be used for github. \n\
+                USED_USER: A user already stored in database. \n\
+                USED_PWD: Password for used user. \n\
                 DATABASE: The database to access. \n\
                 DB_USER: A database handler user with readWrite. \n\
                 DB_PWD: Database password. \n\
@@ -23,6 +26,8 @@ if (!process.env.LOCAL_USER || !process.env.LOCAL_PWD || !process.env.GITHUB_USE
 var localUser = process.env.LOCAL_USER,
     localPass = process.env.LOCAL_PWD,
     githubUser = process.env.GITHUB_USER,
+    usedUser = process.env.USED_USER,
+    usedPass = process.env.USED_PASS,
     token;
 
 bcrypt.hash(localPass, 10, function(err, hash) {
@@ -225,7 +230,7 @@ registerAlreadyUsedCr = {
     'Registering used CR user': {
         topic: function() {
             var self = this;
-            user.registerCr(localUser, localPass, null, null, function(err, data) {
+            user.registerCr(usedUser, usedPass, null, null, function(err, data) {
                 self.callback(err, data);
             });
         },
@@ -392,4 +397,19 @@ badDbGithub = {
     }
 };
 
-vows.describe('users.js').addBatch(users).addBatch(registerValid).addBatch(registerAlreadyUsed).addBatch(registerBadHandler).addBatch(registerBadDb).addBatch(removeInvalid).addBatch(removeBadHandler).addBatch(removeBadDb).addBatch(registerValidCr).addBatch(registerAlreadyUsedCr).addBatch(registerBadHandlerCr).addBatch(registerBadDbCr).addBatch(removeValidCr).addBatch(removeInvalidCr).addBatch(removeBadHandlerCr).addBatch(removeBadDbCr).addBatch(registerValidGithub).addBatch(registerInvalidGithub).addBatch(addGithubValid).addBatch(badHandlerGithub).addBatch(badDbGithub).addBatch(removeValid).export(module);
+removeGithub = {
+    'Removing github user': {
+        topic: function() {
+            var self = this;
+            user.removeLocal(githubUser, function(err, removed) {
+                self.callback(err, removed);
+            });
+        },
+        'should return true': function(err, removed){
+            assert.isNull(err);
+            assert.isTrue(removed);
+        }
+    }
+};
+
+vows.describe('users.js').addBatch(users).addBatch(registerValid).addBatch(registerAlreadyUsed).addBatch(registerBadHandler).addBatch(registerBadDb).addBatch(removeInvalid).addBatch(removeBadHandler).addBatch(removeBadDb).addBatch(registerValidCr).addBatch(registerAlreadyUsedCr).addBatch(registerBadHandlerCr).addBatch(registerBadDbCr).addBatch(removeValidCr).addBatch(removeInvalidCr).addBatch(removeBadHandlerCr).addBatch(removeBadDbCr).addBatch(registerValidGithub).addBatch(registerInvalidGithub).addBatch(addGithubValid).addBatch(badHandlerGithub).addBatch(badDbGithub).addBatch(removeValid).addBatch(removeGithub).export(module);
