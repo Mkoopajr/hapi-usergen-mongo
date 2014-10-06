@@ -19,11 +19,16 @@
         "vows": "~0.7.0"
     },
     "scripts": {
-        "test": "istanbul cover --print both vows -- --spec ./tests/*.js"
+        "test": "istanbul cover --print both vows -- --spec ./tests/users.js ./tests/hapi-usergen-mongo.js"
     },
     "licenses": [
         {
-            "type": "BSD"
+            "type": "BSD",
+            "url": "https://github.com/Mkoopajr/hapi-usergen-mongo/blob/master/LICENSE"
         }
-    ]
+    ],
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/Mkoopajr/hapi-usergen-mongo.git"
+    }
 }
