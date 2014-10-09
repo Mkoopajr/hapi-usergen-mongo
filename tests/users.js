@@ -27,7 +27,7 @@ var localUser = process.env.LOCAL_USER,
     localPass = process.env.LOCAL_PWD,
     githubUser = process.env.GITHUB_USER,
     usedUser = process.env.USED_USER,
-    usedPass = process.env.USED_PASS,
+    usedPass = process.env.USED_PWD,
     token;
 
 bcrypt.hash(localPass, 10, function(err, hash) {
@@ -235,6 +235,7 @@ registerAlreadyUsedCr = {
             });
         },
         'should return error': function(err, data) {
+            console.log(err);
             assert.isNotNull(err);
         }
     }
@@ -292,6 +293,7 @@ removeInvalidCr = {
             });
         },
         'should return error': function(err, removed){
+            console.log(err);
             assert.isNotNull(err);
         }
     }
