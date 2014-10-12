@@ -4,6 +4,8 @@
 
 ## Install
 
+npm install hapi-usergen-mongo
+
 ## Usage
 
 A user generator plugin for hapi and MongoDB. Must have database already set up with one user that
@@ -114,7 +116,7 @@ server.route([
         method: 'POST',
         path: '/removecr',
         handler: function (req, res) {
-            server.plugins['hapi-usergen-mongo'].user.removecr(req.payload.username,
+            server.plugins['hapi-usergen-mongo'].user.removeCr(req.payload.username,
             function(err, removed) {
                 if (err) {
                     res(err);
