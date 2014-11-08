@@ -1,6 +1,6 @@
 {
     "name": "hapi-usergen-mongo",
-    "version": "1.0.1",
+    "version": "2.0.0",
     "description": "MongoDB user generator for Hapijs",
     "author": "Jacob Morton <mkoopajr@gmail.com>",
     "engines": {
