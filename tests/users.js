@@ -1,6 +1,5 @@
 var vows = require('vows'),
-    assert = require('assert'),
-    bcrypt = require('bcrypt');
+    assert = require('assert');
 
 if (!process.env.LOCAL_USER || !process.env.LOCAL_PWD || !process.env.GITHUB_USER
     || !process.env.USED_USER || !process.env.USED_PWD || !process.env.DATABASE
@@ -23,21 +22,38 @@ if (!process.env.LOCAL_USER || !process.env.LOCAL_PWD || !process.env.GITHUB_USE
     process.exit(1);
 }
 
-var localUser = process.env.LOCAL_USER,
-    localPass = process.env.LOCAL_PWD,
-    githubUser = process.env.GITHUB_USER,
-    usedUser = process.env.USED_USER,
-    usedPass = process.env.USED_PWD,
-    token;
+var validUser = {
+    'name': process.env.LOCAL_USER,
+    'pwd': process.env.LOCAL_PWD
+};
 
-bcrypt.hash(localPass, 10, function(err, hash) {
-    if (err) {
-        console.log(err);
-        process.exit(1);
-    }
+var userNoPwd = {
+    'name': process.env.LOCAL_USER
+};
 
-    token = hash;
-}); 
+var usedUser = {
+    'name': process.env.USED_USER,
+    'pwd': process.env.USED_PWD
+};
+
+var validUserData = {
+    'firstn': 'testy',
+    'lastn': 'tester',
+    'age': 42,
+    'address': {
+        'street': '123 test ln',
+        'city': 'testville',
+        'state': 'testopolis'
+    },
+    likes: ['testing', 23]
+};
+
+var roles = [{'role': 'readWrite', 'db': 'test'}];
+
+var githubUser = {
+    'name': process.env.GITHUB_USER,
+    'pwd': 'token'
+};
 
 var options = {
     db: process.env.DATABASE,
@@ -101,7 +117,7 @@ registerValid = {
     'Registering new valid local user': {
         topic: function() {
             var self = this;
-            user.registerLocal(localUser, localPass, function(err, data) {
+            user.registerLocal(validUser, function(err, data) {
                 self.callback(err, data);
             });
         },
@@ -116,7 +132,21 @@ registerAlreadyUsed = {
     'Registering used local user': {
         topic: function() {
             var self = this;
-            user.registerLocal(localUser, localPass, function(err, data) {
+            user.registerLocal(validUser, function(err, data) {
+                self.callback(err, data);
+            });
+        },
+        'should return error': function(err, data) {
+            assert.isNotNull(err);
+        }
+    }
+};
+
+registerLocalNoPwd = {
+    'Registering local user without name or password': {
+        topic: function() {
+            var self = this;
+            user.registerLocal(userNoPwd, function(err, data) {
                 self.callback(err, data);
             });
         },
@@ -130,7 +160,7 @@ registerBadHandler = {
     'Registering local user with bad handler': {
         topic: function() {
             var self = this;
-            badUser.registerLocal(localUser, localPass, function(err, data) {
+            badUser.registerLocal(validUser, function(err, data) {
                 self.callback(err, data);
             });
         },
@@ -144,7 +174,7 @@ registerBadDb = {
     'Registering local user with bad Db': {
         topic: function() {
             var self = this;
-            badDb.registerLocal(localUser, localPass, function(err, data) {
+            badDb.registerLocal(validUser, function(err, data) {
                 self.callback(err, data);
             });
         },
@@ -158,7 +188,7 @@ removeValid = {
     'Removing local user': {
         topic: function() {
             var self = this;
-            user.removeLocal(localUser, function(err, removed) {
+            user.removeLocal(validUser.name, function(err, removed) {
                 self.callback(err, removed);
             });
         },
@@ -187,7 +217,7 @@ removeBadHandler = {
     'Removing local user with bad handler': {
         topic: function() {
             var self = this;
-            badUser.removeLocal(localUser, function(err, removed) {
+            badUser.removeLocal(validUser.name, function(err, removed) {
                 self.callback(err, removed);
             });
         },
@@ -201,7 +231,7 @@ removeBadDb = {
     'Removing local user with bad Db': {
         topic: function() {
             var self = this;
-            badDb.removeLocal(localUser, function(err, removed) {
+            badDb.removeLocal(validUser.name, function(err, removed) {
                 self.callback(err, removed);
             });
         },
@@ -211,11 +241,11 @@ removeBadDb = {
     }
 };
 
-registerValidCr = {
-    'Registering new valid CR user': {
+registerValidWithData = {
+    'Registering new valid local user with data': {
         topic: function() {
             var self = this;
-            user.registerCr(localUser, localPass, null, null, function(err, data) {
+            user.registerLocal(validUser, validUserData, function(err, data) {
                 self.callback(err, data);
             });
         },
@@ -226,16 +256,59 @@ registerValidCr = {
     }
 };
 
-registerAlreadyUsedCr = {
-    'Registering used CR user': {
+removeValidWithData = {
+    'Removing local user with Data': {
         topic: function() {
             var self = this;
-            user.registerCr(usedUser, usedPass, null, null, function(err, data) {
+            user.removeLocal(validUser.name, function(err, removed) {
+                self.callback(err, removed);
+            });
+        },
+        'should return true': function(err, removed){
+            assert.isNull(err);
+            assert.isTrue(removed);
+        }
+    }
+};
+
+registerValidCr = {
+    'Registering new valid CR user': {
+        topic: function() {
+            var self = this;
+            user.registerCr(validUser,  function(err, data) {
+                self.callback(err, data);
+            });
+        },
+        'should return true': function(err, data) {
+            assert.isNull(err);
+            assert.isTrue(data);
+        }
+    }
+};
+
+registerCrNoPwd = {
+    'Registering CR user without name or password': {
+        topic: function() {
+            var self = this;
+            user.registerCr(userNoPwd,  function(err, data) {
                 self.callback(err, data);
             });
         },
         'should return error': function(err, data) {
-            console.log(err);
+            assert.isNotNull(err);
+        }
+    }
+};
+
+registerAlreadyUsedCr = {
+    'Registering used CR user': {
+        topic: function() {
+            var self = this;
+            user.registerCr(usedUser, function(err, data) {
+                self.callback(err, data);
+            });
+        },
+        'should return error': function(err, data) {
             assert.isNotNull(err);
         }
     }
@@ -245,7 +318,7 @@ registerBadHandlerCr = {
     'Registering CR user with bad handler': {
         topic: function() {
             var self = this;
-            badUser.registerCr(localUser, localPass, null, null, function(err, data) {
+            badUser.registerCr(validUser, function(err, data) {
                 self.callback(err, data);
             });
         },
@@ -259,7 +332,7 @@ registerBadDbCr = {
     'Registering CR user with bad Db': {
         topic: function() {
             var self = this;
-            badDb.registerCr(localUser, localPass, null, null, function(err, data) {
+            badDb.registerCr(validUser, function(err, data) {
                 self.callback(err, data);
             });
         },
@@ -273,7 +346,7 @@ removeValidCr = {
     'Removing CR user': {
         topic: function() {
             var self = this;
-            user.removeCr(localUser, function(err, removed) {
+            user.removeCr(validUser.name, function(err, removed) {
                 self.callback(err, removed);
             });
         },
@@ -293,7 +366,6 @@ removeInvalidCr = {
             });
         },
         'should return error': function(err, removed){
-            console.log(err);
             assert.isNotNull(err);
         }
     }
@@ -303,7 +375,7 @@ removeBadHandlerCr = {
     'Removing CR user with bad handler': {
         topic: function() {
             var self = this;
-            badUser.removeCr(localUser, function(err, removed) {
+            badUser.removeCr(validUser.name, function(err, removed) {
                 self.callback(err, removed);
             });
         },
@@ -317,7 +389,7 @@ removeBadDbCr = {
     'Removing CR user with bad Db': {
         topic: function() {
             var self = this;
-            badDb.removeCr(localUser, function(err, removed) {
+            badDb.removeCr(validUser.name, function(err, removed) {
                 self.callback(err, removed);
             });
         },
@@ -327,11 +399,71 @@ removeBadDbCr = {
     }
 };
 
+registerValidCrWithData = {
+    'Registering new valid CR user with data': {
+        topic: function() {
+            var self = this;
+            user.registerCr(validUser, validUserData,  function(err, data) {
+                self.callback(err, data);
+            });
+        },
+        'should return true': function(err, data) {
+            assert.isNull(err);
+            assert.isTrue(data);
+        }
+    }
+};
+
+removeValidCrWithData = {
+    'Removing CR user with data': {
+        topic: function() {
+            var self = this;
+            user.removeCr(validUser.name, function(err, removed) {
+                self.callback(err, removed);
+            });
+        },
+        'should return true': function(err, removed){
+            assert.isNull(err);
+            assert.isTrue(removed);
+        }
+    }
+};
+
+registerValidCrWithRoles = {
+    'Registering new valid CR user with roles and data': {
+        topic: function() {
+            var self = this;
+            user.registerCr(validUser, roles, validUserData,  function(err, data) {
+                self.callback(err, data);
+            });
+        },
+        'should return true': function(err, data) {
+            assert.isNull(err);
+            assert.isTrue(data);
+        }
+    }
+};
+
+removeValidCrWithRoles = {
+    'Removing CR user with roles and data': {
+        topic: function() {
+            var self = this;
+            user.removeCr(validUser.name, function(err, removed) {
+                self.callback(err, removed);
+            });
+        },
+        'should return true': function(err, removed){
+            assert.isNull(err);
+            assert.isTrue(removed);
+        }
+    }
+};
+
 registerValidGithub = {
     'Registering new valid github user': {
         topic: function() {
             var self = this;
-            user.registerLocalGithub(githubUser, token, function(err, data) {
+            user.registerLocalGithub(githubUser, function(err, data) {
                 self.callback(err, data);
             });
         },
@@ -346,7 +478,7 @@ registerInvalidGithub = {
     'Registering used github user': {
         topic: function() {
             var self = this;
-            user.registerLocalGithub(githubUser, token, function(err, data) {
+            user.registerLocalGithub(githubUser, function(err, data) {
                 self.callback(err, data);
             });
         },
@@ -360,7 +492,7 @@ addGithubValid = {
     'Adding github to valid local user': {
         topic: function() {
             var self = this;
-            user.registerLocalGithub(localUser, token, function(err, data) {
+            user.registerLocalGithub(validUser, function(err, data) {
                 self.callback(err, data);
             });
         },
@@ -375,7 +507,7 @@ badHandlerGithub = {
     'Registering github user with bad handler': {
         topic: function() {
             var self = this;
-            badUser.registerLocalGithub(githubUser, token, function(err, data) {
+            badUser.registerLocalGithub(githubUser, function(err, data) {
                 self.callback(err, data);
             });
         },
@@ -389,7 +521,7 @@ badDbGithub = {
     'Registering github user with bad Db': {
         topic: function() {
             var self = this;
-            badDb.registerLocalGithub(githubUser, token, function(err, data) {
+            badDb.registerLocalGithub(githubUser, function(err, data) {
                 self.callback(err, data);
             });
         },
@@ -403,7 +535,7 @@ removeGithub = {
     'Removing github user': {
         topic: function() {
             var self = this;
-            user.removeLocal(githubUser, function(err, removed) {
+            user.removeLocal(githubUser.name, function(err, removed) {
                 self.callback(err, removed);
             });
         },
@@ -414,4 +546,34 @@ removeGithub = {
     }
 };
 
-vows.describe('users.js').addBatch(users).addBatch(registerValid).addBatch(registerAlreadyUsed).addBatch(registerBadHandler).addBatch(registerBadDb).addBatch(removeInvalid).addBatch(removeBadHandler).addBatch(removeBadDb).addBatch(registerValidCr).addBatch(registerAlreadyUsedCr).addBatch(registerBadHandlerCr).addBatch(registerBadDbCr).addBatch(removeValidCr).addBatch(removeInvalidCr).addBatch(removeBadHandlerCr).addBatch(removeBadDbCr).addBatch(registerValidGithub).addBatch(registerInvalidGithub).addBatch(addGithubValid).addBatch(badHandlerGithub).addBatch(badDbGithub).addBatch(removeValid).addBatch(removeGithub).export(module);
+registerValidGithubWithData = {
+    'Registering new valid github user with data': {
+        topic: function() {
+            var self = this;
+            user.registerLocalGithub(githubUser, validUserData, function(err, data) {
+                self.callback(err, data);
+            });
+        },
+        'should return true': function(err, data) {
+            assert.isNull(err);
+            assert.isTrue(data);
+        }
+    }
+};
+
+registerGithubNoPwd = {
+    'Registering github user without name or password': {
+        topic: function() {
+            var self = this;
+            user.registerLocalGithub(userNoPwd, function(err, data) {
+                self.callback(err, data);
+            });
+        },
+        'should return error': function(err, data) {
+            assert.isNotNull(err);
+        }
+    }
+};
+
+
+vows.describe('users.js').addBatch(users).addBatch(registerValid).addBatch(registerAlreadyUsed).addBatch(registerBadHandler).addBatch(registerBadDb).addBatch(registerLocalNoPwd).addBatch(removeValid).addBatch(removeInvalid).addBatch(removeBadHandler).addBatch(removeBadDb).addBatch(registerValidWithData).addBatch(registerValidCr).addBatch(registerCrNoPwd).addBatch(registerAlreadyUsedCr).addBatch(registerBadHandlerCr).addBatch(registerBadDbCr).addBatch(removeValidCr).addBatch(removeInvalidCr).addBatch(removeBadHandlerCr).addBatch(removeBadDbCr).addBatch(registerValidCrWithData).addBatch(removeValidCrWithData).addBatch(registerValidCrWithRoles).addBatch(removeValidCrWithRoles).addBatch(registerValidGithub).addBatch(registerInvalidGithub).addBatch(addGithubValid).addBatch(badHandlerGithub).addBatch(badDbGithub).addBatch(removeValidWithData).addBatch(removeGithub).addBatch(registerValidGithubWithData).addBatch(registerGithubNoPwd).addBatch(removeGithub).export(module);

@@ -6,6 +6,19 @@
 
 npm install hapi-usergen-mongo
 
+## Changes from v1 to v2
+
+All user register function no longer take username and password arguments. Instead they take
+a object. The object requires name and pwd keys as follows `{'name': username, 'pwd': password}`,
+for registerCr those are the only fields that should be used. For registerLocal/Github you can
+add in any additional fields you would like.
+
+registerCr no longer requires a value to be passed for roles and customData. Roles must be an array
+and customData must be a object if passed.
+
+registerLocal/Github now have a data argument for any additional information you would like stored
+with the user. This field is a object.
+
 ## Usage
 
 A user generator plugin for hapi and MongoDB. Must have database already set up with one user that
@@ -18,10 +31,10 @@ has readWrite role if you are storing local or userAdmin if storing CR. Requires
 - `ssl` - MongoDB ssl. Defaults to `false`.
 
 Exports functions:
-- `user.registerLocal(username, password, callback)` - User stored as document. Callback is (err, true). Has schema of `{_id: username, local: {name: username, pwd: password}}`. Password is stored with bcrypt.
-- `user.registerLocalGithub(name, password, callback)` - Github OAuth credentials stored as document. Callback is (err, true). Has schema of `{_id: username, github: {name: username, pwd: token}}`.
+- `user.registerLocal(user, data, callback)` - User stored as document. Callback is (err, true). Has schema of `{_id: username, local: {name: username, pwd: password}, data: {}}`. Password is stored with bcrypt.
+- `user.registerLocalGithub(user, data, callback)` - Github OAuth credentials stored as document. Callback is (err, true). Has schema of `{_id: username, github: {name: username, pwd: token}, data: {}}`.
 - `user.removeLocal(username, callback)` - Removes local or github user. Callback is (err, true).
-- `user.registerCr(name, password, roles, customData, callback)` - User stored as MongoDB Challenge-response user. Callback is (err, true).
+- `user.registerCr(user, roles, customData, callback)` - User stored as MongoDB Challenge-response user. Callback is (err, true).
 - `user.removeCr(name, callback)` - Removes Challenge-response user. Callback is (err, true).
 
 Some Notes:
@@ -57,8 +70,9 @@ server.route([
         method: 'POST',
         path: '/registerlocal',
         handler: function (req, res) {
-            server.plugins['hapi-usergen-mongo'].user.registerLocal(req.payload.username,
-            req.payload.password, function(err, created) {
+            var user = {'name': req.payload.username, 'pwd': req.payload.password};
+
+            server.plugins['hapi-usergen-mongo'].user.registerLocal(user, function(err, created) {
                 if (err) {
                     res(err);
                 }
@@ -73,8 +87,8 @@ server.route([
         handler: function (req, res) {
             // Getting information from Github for OAuth is up to you.
             // I highly suggest using bell https://github.com/hapijs/bell
-            server.plugins['hapi-usergen-mongo'].user.registerGithub(req.payload.username,
-            req.payload.password, function(err, created) {
+            server.plugins['hapi-usergen-mongo'].user.registerGithub({'name': req.payload.username,
+            'pwd': req.payload.password}, function(err, created) {
                 if (err) {
                     res(err);
                 }
@@ -102,8 +116,8 @@ server.route([
         path: '/registercr',
         handler: function (req, res) {
             // Creates a MongoDB user with no roles or customData
-            server.plugins['hapi-usergen-mongo'].user.registerCr(req.payload.username,
-            req.payload.password, null, null, function(err, created) {
+            server.plugins['hapi-usergen-mongo'].user.registerCr({'name': req.payload.username,
+            'pwd': req.payload.password}, function(err, created) {
                 if (err) {
                     res(err);
                 }
